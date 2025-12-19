@@ -1,9 +1,12 @@
+#/usr/bin/env python3
 import tkinter as tk
 from tkinter import ttk
 import subprocess
 import re
 import webbrowser
 import time
+
+APP_VERSION = str("0.1.3")
 
 def scan_wifi():
     """ Powershell command example output
@@ -61,7 +64,7 @@ def scan_wifi():
 
 # Open webbrowser and send to the GitHub repo to check for updates. Called from top layer menu bar.
 def show_check_4_updates():
-    webbrowser.open("https://github.com/GoobyFRS/gooby-dot11-scan")
+    webbrowser.open("https://github.com/GoobyFRS/Goobs-WiFi-Scanner")
 
 # Clean user-prompt-able exit method. Called from top layer menu bar.
 def exit_app():
@@ -90,12 +93,41 @@ def tkt_reference_placeholder(entry, placeholder):
     entry.bind("<FocusIn>", on_focus_in)
     entry.bind("<FocusOut>", on_focus_out)
 
+""" COMMENTED OUT UNTIL FIRST BUILD """
+def export_csv():
+    # Build a default filename with timestamp
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    default_name = f"wireless_scan_{ts}.csv"
+    try:
+        from tkinter import filedialog
+        path = filedialog.asksaveasfilename(defaultextension=".csv", initialfile=default_name,
+                                            filetypes=[("CSV files", "*.csv"), ("All files", "*")])
+        if not path:
+            return
+
+        # Collect rows from the treeview
+        rows = []
+        for iid in tree.get_children():
+            vals = tree.item(iid, "values")
+            rows.append(vals)
+
+        # Write CSV
+        import csv
+        with open(path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["SSID", "MAC Address", "Signal Strength", "Channel"]) 
+            for r in rows:
+                writer.writerow(r)
+    except Exception as e:
+        tk.messagebox.showerror("Export Error", f"Failed to export CSV: {e}")
+#"""
+
 # ALL APPLICATION FUNCTIONS BELONG ABOVE THIS LINE!
 # ALL GUI BUILDING BELOG BELOW THIS LINE!
 
 # Build the main application window.
 root = tk.Tk()
-root.title("Matts Wi-Fi Scanner - v0.1.3")
+root.title("Infrastructure Wi-Fi Scanner v0.1.0") # Please update title to reflect new versioning.
 root.geometry("720x480")
 
 # Create the top layer menu bar.
@@ -103,6 +135,9 @@ menu_bar = tk.Menu(root)
 
 # File menu in the top layer menu bar.
 file_menu = tk.Menu(menu_bar, tearoff=0)
+
+file_menu.add_command(label="Export CSV", command=export_csv) # Remove comment 
+file_menu.add_separator()
 file_menu.add_command(label="Exit", command=exit_app)
 menu_bar.add_cascade(label="File", menu=file_menu)
 

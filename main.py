@@ -127,7 +127,7 @@ def export_csv():
 
 # Build the main application window.
 root = tk.Tk()
-root.title("Infrastructure Wi-Fi Scanner v0.1.0") # Please update title to reflect new versioning.
+root.title(f"Matts Wireless Scanner {APP_VERSION}") # Please update title to reflect new versioning.
 root.geometry("720x480")
 
 # Create the top layer menu bar.

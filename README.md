@@ -1,36 +1,35 @@
-# Matts DOT11 Scanner
+# Goobs WiFi Scanner
 
-A lightweight 802.11 Wireless Network Scanner and Analysis Tool for Windows 10/11 devices. DOT11 Scan is designed as a modern replacement for Homedale, providing a user-friendly GUI for wireless network analysis.
+A lightweight 802.11 Wireless Network Scanner and Analysis Tool for Windows 10/ Windows 11 devices. Goobs WiFi Scanner is designed as a modern replacement for Homedale, providing a user-friendly GUI for wireless network analysis.
 
-DOT11 Scan helps IT Technicians perform simple analysis of retail wireless networks. It's particularly useful for:
+Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wireless networks. It's particularly useful for:
 
 - Locating dead-zones and areas of poor coverage.
 - Identifying co-channel interference.
 - Optimizing wireless network placement and configuration.
 - Troubleshooting connectivity issues.
 
-**Current Version:** 0.1.3 - _Portable EXE built using PyInstaller._
+**Current Version:** 0.1.4
+
+**Relase Date:** 2026.01.06
 
 | **SSID** | **Broadcast MAC** | **Signal Strength**| **Channel** |
 | --- | --- | --- | --- |
 | Data | a1:b2:c3:e4:f6:78 | Percentage/100 | Data |
 
-## Project Setup
+## Build Process
 
-Matt's DOT11 Scanner currently has 0 dependancies outside a full Python3.12 installation.
-
-You may need to launch the program from an Elevated Powershell window.
-
-Best results when ran while disconnected from all networks.
-
-```txt
-cd /path/to/repo
-python3 ./main.py
+```shell
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+pyinstaller --onefile --noconsole --name Goobs-WiFi-Scanner main.py
+deactivate
 ```
 
-### Screenshot
+### Screenshots
 
-![image](https://github.com/user-attachments/assets/0f1abe02-76d6-4750-b330-80fed9ae0d0b)
+![GWS_Image](https://github.com/user-attachments/assets/0f1abe02-76d6-4750-b330-80fed9ae0d0b)
 
 ```txt
 ----------------------------------------

@@ -11,7 +11,7 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 
 **Current Version:** 0.1.4
 
-**Relase Date:** 2026.01.06
+**Relase Date:** 2026.01.07
 
 | **SSID** | **Broadcast MAC** | **Signal Strength**| **Channel** |
 | --- | --- | --- | --- |

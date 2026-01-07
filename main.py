@@ -6,7 +6,7 @@ import re
 import webbrowser
 import time
 
-APP_VERSION = str("0.1.3")
+APP_VERSION = str("0.1.4")
 
 def scan_wifi():
     """ Powershell command example output
@@ -127,7 +127,7 @@ def export_csv():
 
 # Build the main application window.
 root = tk.Tk()
-root.title(f"Matts Wireless Scanner {APP_VERSION}") # Please update title to reflect new versioning.
+root.title(f"Goobs WiFi Scanner {APP_VERSION}") # Please update title to reflect new versioning.
 root.geometry("720x480")
 
 # Create the top layer menu bar.

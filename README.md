@@ -1,6 +1,6 @@
 # Goobs WiFi Scanner
 
-A lightweight 802.11 Wireless Network Scanner and Analysis Tool for Windows 10/ Windows 11 devices. Goobs WiFi Scanner is designed as a modern replacement for Homedale, providing a user-friendly GUI for wireless network analysis.
+A lightweight 802.11 Wireless Network Scanner and Analysis Tool for Windows devices. Goobs WiFi Scanner is designed as a modern replacement for Homedale, providing a user-friendly GUI for wireless network analysis.
 
 Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wireless networks. It's particularly useful for:
 
@@ -9,9 +9,9 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 - Optimizing wireless network placement and configuration.
 - Troubleshooting connectivity issues.
 
-**Current Version:** 0.1.4
+**Current Version:** 0.2.0
 
-**Relase Date:** 2026.01.07
+**Relase Date:** 2026.01.08
 
 | **SSID** | **Broadcast MAC** | **Signal Strength**| **Channel** |
 | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ deactivate
 
 ### Screenshots
 
-![GWS_Image](https://github.com/user-attachments/assets/0f1abe02-76d6-4750-b330-80fed9ae0d0b)
+![GWS_Image_old](https://github.com/user-attachments/assets/0f1abe02-76d6-4750-b330-80fed9ae0d0b)
 
 ```txt
 ----------------------------------------

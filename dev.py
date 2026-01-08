@@ -5,7 +5,7 @@ import subprocess, re, time, csv, webbrowser
 from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "v0.3.0"
 SCAN_INTERVAL_MS = 6000
 TIMESTAMP_UPDATE_MS = 1000
 GITHUB_URL = "https://github.com/GoobyFRS/Goobs-WiFi-Scanner"
@@ -52,8 +52,8 @@ class WiFiScanner:
     @staticmethod
     def scan() -> List[WiFiNetwork]: # Returns a List of networks.
         try:
-            command = "netsh wlan show networks mode=bssid"
-            ps_command_result = subprocess.run( command, capture_output=True, text=True, shell=True, timeout=10, creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0)
+            ps_command = "netsh wlan show networks mode=bssid"
+            ps_command_result = subprocess.run( ps_command, capture_output=True, text=True, shell=True, timeout=10, creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0)
             
             if ps_command_result.returncode != 0:
                 # Show actual error output for debugging
@@ -67,7 +67,7 @@ class WiFiScanner:
             return WiFiScanner._parse_output(ps_command_result.stdout)
         
         except subprocess.TimeoutExpired:
-            messagebox.showerror("Driver Error", "Scanning for wireless networks took to long.")
+            messagebox.showerror("Driver Error", "Scanning for wireless networks took too long.")
             return []
         except FileNotFoundError:
             messagebox.showerror("Windows Error", "Could not find netsh command. This tool requires Windows.")
@@ -167,7 +167,7 @@ class PlaceholderEntry(tk.Entry): # Entry widget with placeholder text support
 class WiFiScannerApp: # Main application class
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title(f"Goobs WiFi Scanner v{APP_VERSION}")
+        self.root.title(f"Goobs WiFi Scanner {APP_VERSION}")
         self.root.geometry("800x500")
         
         # Initialize variables
@@ -177,6 +177,7 @@ class WiFiScannerApp: # Main application class
         # Build UI
         self._create_menu_bar()
         self._create_main_table()
+        self._setup_signal_tags()
         self._create_reference_fields()
         self._create_control_buttons()
         self._create_status_bar()
@@ -230,6 +231,30 @@ class WiFiScannerApp: # Main application class
             self.tree.column(col, width=column_widths.get(col, 100))
         
         self.tree.pack(expand=True, fill="both")
+
+    def _setup_signal_tags(self): # Configure Treeview tags for signal highlighting
+        # Background colors chosen for readability
+        # Strong: Green, Good: Light Green, Fair: Yellow, Weak: Light Red
+        try:
+            self.tree.tag_configure("sig-strong", background="#2ecc71")      # green
+            self.tree.tag_configure("sig-good", background="#a9dfbf")        # light green
+            self.tree.tag_configure("sig-fair", background="#f9e79f")        # yellow
+            self.tree.tag_configure("sig-weak", background="#f5b7b1")        # light red
+        except Exception:
+            # Fail silently if theme/platform ignores tag backgrounds
+            pass
+
+    @staticmethod
+    def _signal_tag_for_percentage(pct: int) -> Optional[str]:
+        if pct >= 80:
+            return "sig-strong"
+        if 65 <= pct < 80:
+            return "sig-good"
+        if 50 <= pct < 65:
+            return "sig-fair"
+        if pct <= 49:
+            return "sig-weak"
+        return None
     
     def _create_reference_fields(self): # Create reference data entry fields
         entry_frame = tk.Frame(self.root)
@@ -281,7 +306,11 @@ class WiFiScannerApp: # Main application class
         # Update tree
         self.tree.delete(*self.tree.get_children())
         for network in networks:
-            self.tree.insert("", tk.END, values=network.to_tuple())
+            tag = self._signal_tag_for_percentage(network.signal_percentage)
+            if tag:
+                self.tree.insert("", tk.END, values=network.to_tuple(), tags=(tag,))
+            else:
+                self.tree.insert("", tk.END, values=network.to_tuple())
         
         # Schedule next scan
         self.scan_job_id = self.root.after(SCAN_INTERVAL_MS, self.scan_wifi)
@@ -317,10 +346,12 @@ class WiFiScannerApp: # Main application class
                 # Write reference data if provided
                 ref = self.reference_entry.get_value()
                 dept = self.department_entry.get_value()
-                if ref or dept:
+                store = self.customer_entry.get_value()
+                if ref or dept or store:
                     writer.writerow([])
                     writer.writerow(["Reference:", ref])
                     writer.writerow(["Department:", dept])
+                    writer.writerow(["Store:", store])
                     writer.writerow([])
                 # Write network data
                 for row in rows:
@@ -331,21 +362,23 @@ class WiFiScannerApp: # Main application class
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export CSV:\n{str(e)}")
     
-    def check_updates(self): # Open GitHub repository to check for updates
+    def check_updates(self): # Open GitHub Repo for updates.
         webbrowser.open(GITHUB_URL)
 
-    def github_report_issue(self): # Open GitHub issues page
+    def github_report_issue(self): # Launch GitHub Issues Page
         webbrowser.open(ISSUES_URL)
     
-    def goto_wiki(self): # Open GitHub wiki
+    def goto_wiki(self): # Launch GitHub Wiki Page
         webbrowser.open(WIKI_URL)
-    
+
     def show_about(self): # About dialog
-        about_text = f"""Goobs WiFi Scanner v{APP_VERSION}
+        about_text = f"""Goobs WiFi Scanner {APP_VERSION}
 
 Lightweight Windows-centric 802.11 (DOT11) Wireless Scanner.
 
-Listens for broadcasting networks with export-able results for troubleshooting and analysis."""
+Works best when disconnected from any WiFi network.
+
+"""
         messagebox.showinfo("About", about_text)
     
     def exit_app(self): # Clean Exit

@@ -9,7 +9,7 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 - Optimizing wireless network placement and configuration.
 - Troubleshooting connectivity issues.
 
-**Current Version:** 0.3.0
+**Current Version:** 0.3.1
 
 **Relase Date:** 2026.01.08
 

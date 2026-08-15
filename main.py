@@ -35,6 +35,7 @@ def scan_wifi():
     current_ssid = None
     current_bssid = None
 
+<<<<<<< Updated upstream
     for line in ps_cmd_output.stdout.split("\n"):
         line = line.strip()
 
@@ -201,3 +202,7 @@ update_gui_timestamp()
 
 # Start the Tkinter event loop.
 root.mainloop()
+=======
+if __name__ == "__main__":
+    main()
+>>>>>>> Stashed changes

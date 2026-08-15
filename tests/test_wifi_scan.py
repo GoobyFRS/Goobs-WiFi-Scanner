@@ -53,12 +53,21 @@ def test_parse_wifi_output_extracts_network_details():
     )
 
 
-def test_get_speedtest_commands_prefers_project_venv():
+def test_get_speedtest_commands_prefers_project_venv(monkeypatch):
     project_root = Path(__file__).resolve().parents[1]
     expected = [
         str(project_root / "venv" / "Scripts" / "speedtest.exe"),
         "--json",
     ]
+
+    real_exists = Path.exists
+
+    def fake_exists(path: Path) -> bool:
+        if str(path) == expected[0]:
+            return True
+        return real_exists(path)
+
+    monkeypatch.setattr(Path, "exists", fake_exists, raising=False)
 
     commands = _get_speedtest_commands()
 

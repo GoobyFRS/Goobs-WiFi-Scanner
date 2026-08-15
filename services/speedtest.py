@@ -81,7 +81,8 @@ def _get_speedtest_commands() -> list[list[str]]:
         venv_scripts = project_root / "venv" / "Scripts"
         for executable_name in executable_names:
             executable_path = venv_scripts / executable_name
-            candidates.append([str(executable_path), "--json"])
+            if executable_path.exists():
+                candidates.append([str(executable_path), "--json"])
 
     for executable_name in executable_names:
         resolved_path = shutil.which(executable_name)

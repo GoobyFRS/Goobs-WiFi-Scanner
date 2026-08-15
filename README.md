@@ -9,22 +9,79 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 - Optimizing wireless network placement and configuration.
 - Troubleshooting connectivity issues.
 
-**Current Version:** 0.3.0
+**Current Version:** 0.5.1
 
-**Relase Date:** 2026.01.08
+**Relase Date:** 2026.08.15
 
-| **SSID** | **Broadcast MAC** | **Signal Strength**| **Channel** |
+| **SSID** | **Broadcast MAC** | **Signal Strength** | **Channel** |
 | --- | --- | --- | --- |
 | Data | a1:b2:c3:e4:f6:78 | Percentage/100 | Data |
+
+## Quick Start
+
+```shell
+python -m venv venv
+venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py
+```
 
 ## Build Process
 
 ```shell
 python -m venv venv
 venv\Scripts\activate
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 pyinstaller --onefile --noconsole --name Goobs-WiFi-Scanner main.py
-deactivate
+```
+
+The packaged app entry point remains `main.py`, which forwards to the package entry point in `app/main.py`.
+
+## Version Bump Flow
+
+The project version is managed centrally in `pyproject.toml`. Update the `project.version` value there, then keep the runtime app metadata in sync.
+
+```toml
+[project]
+version = "0.5.1"
+```
+
+If you need to bump the app version for the UI title, update the matching value in `app/__init__.py` and `app/main.py` to the same value.
+
+```text
+pyproject.toml           -> project.version
+app/__init__.py          -> __version__
+app/main.py              -> APP_VERSION
+```
+
+This keeps a single source of truth for release metadata while preserving the GUI display version.
+
+## Project Layout
+
+```text
+Goobs-WiFi-Scanner/
+├─ app/
+│  ├─ __init__.py
+│  └─ main.py
+├─ models/
+│  ├─ __init__.py
+│  └─ network.py
+├─ services/
+│  ├─ __init__.py
+│  └─ wifi_scan.py
+├─ tests/
+│  ├─ test_wifi_scan.py
+│  └─ test_safe_subprocess.py
+├─ utils/
+│  ├─ __init__.py
+│  └─ subprocess_utils.py
+├─ main.py
+├─ safe_subprocess.py
+├─ README.md
+├─ requirements.txt
+└─ LICENSE
 ```
 
 ### Screenshots

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goobs-wifi-scanner"
+version = "0.5.1"
+description = "A lightweight Wi-Fi scanner and analysis tool for Windows devices."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Goobs WiFi Scanner contributors" }
+]
+license = { text = "MIT" }
+keywords = ["wifi", "wireless", "networking", "tkinter"]
+
+[tool.setuptools]
+packages = ["app", "models", "services", "utils"]

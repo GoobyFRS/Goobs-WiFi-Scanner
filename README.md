@@ -9,11 +9,7 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 - Optimizing wireless network placement and configuration.
 - Troubleshooting connectivity issues.
 
-<<<<<<< Updated upstream
-**Current Version:** 0.3.1
-=======
 **Current Version:** 0.5.3
->>>>>>> Stashed changes
 
 **Relase Date:** 2026.01.08
 
@@ -26,11 +22,6 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 ```shell
 python -m venv venv
 venv\Scripts\activate
-<<<<<<< Updated upstream
-pip install -r requirements.txt
-pyinstaller --onefile --noconsole --name Goobs-WiFi-Scanner main.py
-deactivate
-=======
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python main.py
@@ -94,7 +85,6 @@ Goobs-WiFi-Scanner/
 ├─ README.md
 ├─ requirements.txt
 └─ LICENSE
->>>>>>> Stashed changes
 ```
 
 ### Screenshots

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import subprocess
 from collections.abc import Sequence
 
@@ -95,7 +94,10 @@ def run_bounded_command(
 
     startupinfo = None
     creationflags = 0
-    if os.name == "nt":
+    if all(
+        hasattr(subprocess, attribute)
+        for attribute in ("STARTUPINFO", "STARTF_USESHOWWINDOW", "SW_HIDE")
+    ):
         # Hide console-based tools so a GUI app does not flash a cmd window.
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW

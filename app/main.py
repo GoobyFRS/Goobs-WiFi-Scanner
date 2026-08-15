@@ -9,8 +9,13 @@ import time
 import urllib.request
 import webbrowser
 
-import tkinter as tk
-from tkinter import messagebox, ttk
+try:
+    import tkinter as tk
+    from tkinter import messagebox, ttk
+except ModuleNotFoundError:  # pragma: no cover - depends on system packages
+    tk = None
+    messagebox = None
+    ttk = None
 
 from models.network import NetworkRecord
 from services.speedtest import run_speedtest
@@ -551,6 +556,9 @@ def main():
     """
     global root, tree, timestamp_label, public_ip_label
     global speedtest_button, speedtest_result_label, speedtest_status_dot
+
+    if tk is None or ttk is None:
+        raise RuntimeError("tkinter is required to run the application.")
 
     root = tk.Tk()
     root.title(f"Goobs WiFi Scanner - {APP_VERSION}")

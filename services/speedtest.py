@@ -77,17 +77,16 @@ def _get_speedtest_commands() -> list[list[str]]:
 
     executable_names = ("speedtest.exe", "speedtest-cli.exe")
 
-    for executable_name in executable_names:
-        resolved_path = shutil.which(executable_name)
-        if resolved_path:
-            candidates.append([resolved_path, "--json"])
-
     if project_root.exists():
         venv_scripts = project_root / "venv" / "Scripts"
         for executable_name in executable_names:
             executable_path = venv_scripts / executable_name
-            if executable_path.exists():
-                candidates.append([str(executable_path), "--json"])
+            candidates.append([str(executable_path), "--json"])
+
+    for executable_name in executable_names:
+        resolved_path = shutil.which(executable_name)
+        if resolved_path:
+            candidates.append([resolved_path, "--json"])
 
     if sys.platform.startswith("win"):
         candidate_roots = [

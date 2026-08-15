@@ -2,9 +2,9 @@ name: Build and Release
 
 on:
   push:
-    branches: [main]
+    branches: [stable]
   pull_request:
-    branches: [main]
+    branches: [stable]
   workflow_dispatch:
 
 permissions:
@@ -43,13 +43,13 @@ jobs:
       - name: Build executable
         shell: pwsh
         run: |
-          pyinstaller --onefile --noconsole --name Goobs-WiFi-Scanner main.py
+          pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-${{ steps.project_version.outputs.version }}" main.py
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: Goobs-WiFi-Scanner-${{ steps.project_version.outputs.version }}
-          path: dist/Goobs-WiFi-Scanner.exe
+          path: dist/Goobs-WiFi-Scanner-${{ steps.project_version.outputs.version }}.exe
 
   release:
     name: Create GitHub release
@@ -69,5 +69,5 @@ jobs:
         with:
           tag_name: v${{ needs.build.outputs.project_version }}
           name: Goobs WiFi Scanner v${{ needs.build.outputs.project_version }}
-          files: dist/Goobs-WiFi-Scanner.exe
+          files: dist/Goobs-WiFi-Scanner-${{ needs.build.outputs.project_version }}.exe
           generate_release_notes: true

@@ -29,12 +29,13 @@ python main.py
 
 ## Build Process
 
-```shell
+```powershell
 python -m venv venv
 venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-pyinstaller --onefile --noconsole --name Goobs-WiFi-Scanner main.py
+$version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"
+pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-$version" main.py
 ```
 
 The packaged app entry point remains `main.py`, which forwards to the package entry point in `app/main.py`.

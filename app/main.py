@@ -22,7 +22,6 @@ root: tk.Tk
 tree: ttk.Treeview
 timestamp_label: tk.Label
 
-
 def _open_link(url: str):
     """Open a GitHub URL in the user's default browser.
 
@@ -59,7 +58,6 @@ def signal_tag_for_percentage(signal_value):
         return "sig-weak"
     return None
 
-
 def signal_sort_key(network):
     """Return a sortable signal value for a network record.
     Args:
@@ -77,7 +75,6 @@ def signal_sort_key(network):
         return int(str(signal_value).replace("%", "").strip())
     except (TypeError, ValueError):
         return -1
-
 
 def _apply_scan_results(networks):
     """Render scan results in the main Treeview widget.
@@ -119,7 +116,6 @@ def _scan_worker():
         timestamp_label.config(text=f"Scan Error: {exc}")
         root._scan_in_progress = False
 
-
 def scan_wifi():
     """Start a Wi-Fi scan on a worker thread when no scan is already running.
 
@@ -133,14 +129,12 @@ def scan_wifi():
     thread = threading.Thread(target=_scan_worker, daemon=True)
     thread.start()
 
-
 def show_check_4_updates():
     """Open the project GitHub repository in the default browser.
     Returns:
         None: This function delegates to the system browser.
     """
     _open_link(REPO_LINK)
-
 
 def open_wiki():
     """Open the project wiki in the default browser.
@@ -149,7 +143,6 @@ def open_wiki():
     """
     _open_link(WIKI_LINK)
 
-
 def open_issues():
     """Open the GitHub issues page in the default browser.
     Returns:
@@ -157,14 +150,12 @@ def open_issues():
     """
     _open_link(ISSUES_LINK)
 
-
 def exit_app():
     """Quit the application cleanly.
     Returns:
         None: The Tk root window is closed.
     """
     root.quit()
-
 
 def update_gui_timestamp():
     """Refresh the timestamp label in the UI once per second.
@@ -241,10 +232,8 @@ def export_csv():
 
 def build_menu_bar(root_window: tk.Misc) -> tk.Menu:
     """Build the application menu bar with consistent menu structure.
-
     Args:
         root_window: The root Tk window used to attach the menu bar.
-
     Returns:
         A configured Tk menu bar with file and help menus.
     """
@@ -258,8 +247,8 @@ def build_menu_bar(root_window: tk.Misc) -> tk.Menu:
 
     help_menu = tk.Menu(menu_bar, tearoff=0)
     help_menu.add_command(label="Check for Updates", command=show_check_4_updates)
-    help_menu.add_command(label="Wiki", command=open_wiki)
-    help_menu.add_command(label="Issues", command=open_issues)
+    help_menu.add_command(label="Report an Issues", command=open_issues)
+    help_menu.add_command(label="Open Wiki", command=open_wiki)
     menu_bar.add_cascade(label="Help", menu=help_menu)
 
     root_window.config(menu=menu_bar)
@@ -268,10 +257,8 @@ def build_menu_bar(root_window: tk.Misc) -> tk.Menu:
 
 def build_layout(root_window: tk.Tk):
     """Create the main application layout with a consistent widget structure.
-
     Args:
         root_window: The main Tk window to populate.
-
     Returns:
         None: The widgets are created and packed in place.
     """
@@ -325,7 +312,6 @@ def build_layout(root_window: tk.Tk):
 
 def main():
     """Create and run the Tkinter application.
-
     Returns:
         None: The application enters the Tk main loop and runs until exit.
     """

@@ -97,8 +97,9 @@ python -m pytest -q
 
 ## Build
 
-```shell
-pyinstaller --onefile --noconsole --name Goobs-WiFi-Scanner main.py
+```powershell
+$version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"
+pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-$version" main.py
 ```
 
 ## Versioning

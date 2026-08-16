@@ -15,7 +15,7 @@ jobs:
     name: Build Windows artifact
     runs-on: windows-latest
     outputs:
-      project_version: ${{ steps.project_version.outputs.version }}
+      app_version: ${{ steps.project_version.outputs.version }}
 
     steps:
       - name: Checkout repository
@@ -30,20 +30,20 @@ jobs:
         id: project_version
         shell: pwsh
         run: |
-          $version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"
+          $version = python -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])'
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Install build dependencies
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
           python -m pip install pyinstaller
-          python -m pip install -e .
 
       - name: Build executable
         shell: pwsh
         run: |
-          pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-${{ steps.project_version.outputs.version }}" main.py
+          python build_app.py
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -54,20 +54,20 @@ jobs:
   release:
     name: Create GitHub release
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/stable'
     runs-on: ubuntu-latest
 
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: Goobs-WiFi-Scanner-${{ needs.build.outputs.project_version }}
+          name: Goobs-WiFi-Scanner-${{ needs.build.outputs.app_version }}
           path: dist
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.build.outputs.project_version }}
-          name: Goobs WiFi Scanner v${{ needs.build.outputs.project_version }}
-          files: dist/Goobs-WiFi-Scanner-${{ needs.build.outputs.project_version }}.exe
+          tag_name: v${{ needs.build.outputs.app_version }}
+          name: Goobs WiFi Scanner v${{ needs.build.outputs.app_version }}
+          files: dist/Goobs-WiFi-Scanner-${{ needs.build.outputs.app_version }}.exe
           generate_release_notes: true

@@ -11,3 +11,4 @@ pyinstaller-hooks-contrib==2026.6
 pytest==9.1.1
 pywin32-ctypes==0.2.3
 setuptools==84.0.0
+speedtest-cli==2.1.3

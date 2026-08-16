@@ -2,9 +2,9 @@ name: CodeQL
 
 on:
   push:
-    branches: [main]
+    branches: [stable]
   pull_request:
-    branches: [main]
+    branches: [stable]
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

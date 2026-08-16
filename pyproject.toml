@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "goobs-wifi-scanner"
-version = "0.5.1"
+version = "0.5.4"
 description = "A lightweight Wi-Fi scanner and analysis tool for Windows devices."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,3 +16,13 @@ keywords = ["wifi", "wireless", "networking", "tkinter"]
 
 [tool.setuptools]
 packages = ["app", "models", "services", "utils"]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=9.1.1",
+]
+
+[project.dependencies]
+dependencies = [
+  "speedtest-cli==2.1.3",
+]

@@ -11,14 +11,21 @@ from pathlib import Path
 
 from utils.subprocess_utils import run_bounded_command
 
-
 @dataclass(frozen=True)
 class SpeedtestResult:
     """Structured speedtest result data in megabits per second."""
-
     download_mbps: float
     upload_mbps: float
 
+def format_speedtest_result(result: SpeedtestResult) -> str:
+    """Return the compact UI format for a measured speedtest result.
+    Args:
+        result: The measured upload and download speeds in Mbps.
+    Returns:
+        A one-line status string using the app's required UL/DL format.
+    """
+    return (
+        f"UL: {result.upload_mbps:.2f} Mbps DL: {result.download_mbps:.2f} Mbps")
 
 def parse_speedtest_output(raw_output: str) -> SpeedtestResult:
     """Parse a speedtest CLI response and extract download/upload in Mbps.
@@ -34,13 +41,11 @@ def parse_speedtest_output(raw_output: str) -> SpeedtestResult:
         "Download\\s*:\\s*(\\d+(?:\\.\\d+)?)\\s*"
         "(?:Mbit/s|Mbps|Mb/s)",
         raw_output,
-        re.IGNORECASE,
-    )
+        re.IGNORECASE,)
     upload_match = re.search(
         r"Upload\s*:\s*(\d+(?:\.\d+)?)\s*(?:Mbit/s|Mbps|Mb/s)",
         raw_output,
-        re.IGNORECASE,
-    )
+        re.IGNORECASE,)
 
     if not download_match or not upload_match:
         raise ValueError("Could not parse speedtest output.")
@@ -49,9 +54,7 @@ def parse_speedtest_output(raw_output: str) -> SpeedtestResult:
     upload_mbps = float(upload_match.group(1))
     return SpeedtestResult(
         download_mbps=download_mbps,
-        upload_mbps=upload_mbps,
-    )
-
+        upload_mbps=upload_mbps,)
 
 def _extract_result_from_json(raw_output: str) -> SpeedtestResult:
     """Parse JSON output returned by speedtest endpoints or adapters."""
@@ -60,9 +63,7 @@ def _extract_result_from_json(raw_output: str) -> SpeedtestResult:
     upload_mbps = float(payload["upload"])
     return SpeedtestResult(
         download_mbps=download_mbps / 1_000_000,
-        upload_mbps=upload_mbps / 1_000_000,
-    )
-
+        upload_mbps=upload_mbps / 1_000_000,)
 
 def _get_speedtest_commands() -> list[list[str]]:
     """Build the preferred command list for local speedtest execution.
@@ -118,7 +119,6 @@ def _get_speedtest_commands() -> list[list[str]]:
             unique_commands.append(command)
             seen.add(key)
     return unique_commands
-
 
 def run_speedtest() -> SpeedtestResult:
     """Run a bounded internet speedtest and return download/upload numbers.

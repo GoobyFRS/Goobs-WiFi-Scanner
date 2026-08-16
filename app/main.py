@@ -5,15 +5,18 @@ from __future__ import annotations
 
 import threading
 import time
+import urllib.error
+import urllib.request
 import webbrowser
 
 import tkinter as tk
 from tkinter import ttk
 
 from models.network import NetworkRecord
+from services.speedtest import SpeedtestResult, format_speedtest_result, run_speedtest
 from services.wifi_scan import scan_wifi_networks
 
-APP_VERSION = "0.5.1"
+APP_VERSION = "0.5.4"
 REPO_LINK = "https://github.com/GoobyFRS/Goobs-WiFi-Scanner"
 WIKI_LINK = "https://github.com/GoobyFRS/Goobs-WiFi-Scanner/wiki"
 ISSUES_LINK = "https://github.com/GoobyFRS/Goobs-WiFi-Scanner/issues"
@@ -21,13 +24,50 @@ ISSUES_LINK = "https://github.com/GoobyFRS/Goobs-WiFi-Scanner/issues"
 root: tk.Tk
 tree: ttk.Treeview
 timestamp_label: tk.Label
+public_ip_label: tk.Label
+speedtest_button: tk.Button
+speedtest_result_label: tk.Label
+speedtest_status_dot: tk.Canvas
+
+def build_public_ip_status(current_time: str, public_ip: str | None) -> str:
+    """Build the compact status string shown beside the clock in the footer."""
+    public_ip_value = public_ip.strip() if isinstance(public_ip, str) and public_ip.strip() else "unavailable"
+    return f"Last Updated: {current_time} | Public IP: {public_ip_value}"
+
+def fetch_public_ip() -> str | None:
+    """Fetch the current public IP from ipify without blocking the UI thread."""
+    try:
+        with urllib.request.urlopen("https://api.ipify.org?format=text", timeout=10) as response:
+            public_ip = response.read().decode("utf-8", errors="strict").strip()
+            return public_ip or None
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        return None
+
+def _apply_public_ip(public_ip: str | None):
+    """Update the cached public IP on the Tk thread after the worker completes."""
+    root._public_ip = public_ip or "unavailable"
+    root._has_public_ip_task = False
+    update_gui_timestamp()
+
+def _public_ip_worker():
+    """Fetch the public IP on a background thread and push the result back to Tk."""
+    public_ip = fetch_public_ip()
+    root.after(0, _apply_public_ip, public_ip)
+
+def refresh_public_ip():
+    """Start a background fetch for the public IP and schedule the next refresh."""
+    if getattr(root, "_has_public_ip_task", False):
+        return
+
+    root._has_public_ip_task = True
+    worker = threading.Thread(target=_public_ip_worker, daemon=True)
+    worker.start()
+    root.after(60000, refresh_public_ip)
 
 def _open_link(url: str):
     """Open a GitHub URL in the user's default browser.
-
     Args:
         url: The URL to open.
-
     Returns:
         None: The browser launch is delegated to the OS.
     """
@@ -116,6 +156,82 @@ def _scan_worker():
         timestamp_label.config(text=f"Scan Error: {exc}")
         root._scan_in_progress = False
 
+def _set_speedtest_state(
+    state: str,
+    result: SpeedtestResult | None = None,
+    error_message: str | None = None,
+):
+    """Update the speedtest dot and result text to match the current state."""
+    dot_colors = {
+        "idle": "#f4b400",
+        "running": "#1a73e8",
+        "success": "#2e7d32",
+        "error": "#d32f2f",
+    }
+
+    speedtest_status_dot.delete("all")
+    speedtest_status_dot.create_oval(2, 2, 12, 12, fill=dot_colors.get(state, dot_colors["idle"]), outline="")
+
+    if state == "running":
+        speedtest_button.config(state="disabled")
+        speedtest_result_label.config(text="Testing...")
+        return
+
+    speedtest_button.config(state="normal")
+
+    if state == "idle":
+        speedtest_result_label.config(text="UL: 0.00 Mbps | DL: 0.00 Mbps")
+        return
+
+    if state == "success" and result is not None:
+        speedtest_result_label.config(text=f"UL: {result.upload_mbps:.2f} Mbps | DL: {result.download_mbps:.2f} Mbps")
+        return
+
+    if error_message:
+        speedtest_result_label.config(text=error_message)
+    else:
+        speedtest_result_label.config(text="Test failed")
+
+def _apply_speedtest_result(result: SpeedtestResult | None, error_message: str | None = None):
+    """Update the GUI from the background speedtest worker on the Tk thread."""
+    root._speedtest_in_progress = False
+
+    if result is not None:
+        root._last_speedtest_result = result
+        _set_speedtest_state("success", result=result)
+        return
+
+    if error_message:
+        _set_speedtest_state("error", error_message=error_message)
+        return
+
+    if getattr(root, "_last_speedtest_result", None) is not None:
+        _set_speedtest_state("error", error_message="Test failed")
+        return
+
+    _set_speedtest_state("error", error_message="Test failed")
+
+def _speedtest_worker():
+    """Run the speedtest command in a background thread and update the UI."""
+    try:
+        result = run_speedtest()
+        root.after(0, _apply_speedtest_result, result)
+    except Exception as exc:  # pragma: no cover - network-dependent execution path
+        failure_message = str(exc).strip() or "Test failed"
+        if len(failure_message) > 120:
+            failure_message = failure_message[:117] + "..."
+        root.after(0, _apply_speedtest_result, None, failure_message)
+
+def trigger_speedtest():
+    """Start a speedtest in a background worker when one is not already active."""
+    if getattr(root, "_speedtest_in_progress", False):
+        return
+
+    root._speedtest_in_progress = True
+    _set_speedtest_state("running")
+    worker = threading.Thread(target=_speedtest_worker, daemon=True)
+    worker.start()
+
 def scan_wifi():
     """Start a Wi-Fi scan on a worker thread when no scan is already running.
 
@@ -163,9 +279,10 @@ def update_gui_timestamp():
         None: The label is updated on the Tk event loop.
     """
     current_time = time.strftime("%H:%M:%S")
+    public_ip = getattr(root, "_public_ip", "unavailable")
     timestamp_label.config(text=f"Last Updated: {current_time}")
+    public_ip_label.config(text=f"Public IP: {public_ip}")
     root.after(1000, update_gui_timestamp)
-
 
 def tkt_reference_placeholder(entry, placeholder):
     """Attach placeholder behavior to a text entry widget.
@@ -192,7 +309,6 @@ def tkt_reference_placeholder(entry, placeholder):
     entry.config(fg="gray")
     entry.bind("<FocusIn>", on_focus_in)
     entry.bind("<FocusOut>", on_focus_out)
-
 
 def export_csv():
     """Export the current Treeview rows to a CSV file.
@@ -229,7 +345,6 @@ def export_csv():
     except Exception as error:  # pragma: no cover - GUI-backed path
         tk.messagebox.showerror("Export Error", f"Failed to export CSV: {error}")
 
-
 def build_menu_bar(root_window: tk.Misc) -> tk.Menu:
     """Build the application menu bar with consistent menu structure.
     Args:
@@ -253,7 +368,6 @@ def build_menu_bar(root_window: tk.Misc) -> tk.Menu:
 
     root_window.config(menu=menu_bar)
     return menu_bar
-
 
 def build_layout(root_window: tk.Tk):
     """Create the main application layout with a consistent widget structure.
@@ -304,27 +418,61 @@ def build_layout(root_window: tk.Tk):
     scan_button = tk.Button(root_window, text="Scan Wi-Fi", command=scan_wifi)
     scan_button.pack(pady=10)
 
-    timestamp_label_widget = tk.Label(root_window, text="", anchor="w", padx=10)
-    timestamp_label_widget.pack(side="bottom", fill="x")
+    speedtest_frame = tk.Frame(root_window)
+    speedtest_frame.place(relx=1.0, rely=1.0, anchor="se", x=-12, y=-42)
 
-    return tree_widget, timestamp_label_widget
+    global speedtest_button, speedtest_result_label, speedtest_status_dot
+    speedtest_status_dot = tk.Canvas(speedtest_frame, width=14, height=14, highlightthickness=0)
+    speedtest_status_dot.grid(row=0, column=0, padx=(0, 6), pady=(0, 2), sticky="n")
+    speedtest_status_dot.create_oval(2, 2, 12, 12, fill="#7f8c8d", outline="")
 
+    speedtest_button = tk.Button(speedtest_frame, text="Speed Test", width=12, command=trigger_speedtest)
+    speedtest_button.grid(row=0, column=1)
+
+    speedtest_result_label = tk.Label(
+        speedtest_frame,
+        text="UL: 0.00 Mbps | DL: 0.00 Mbps",
+        font=("TkDefaultFont", 8),
+        anchor="center",
+        justify="center",
+        width=26,
+    )
+    speedtest_result_label.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(4, 0))
+
+    footer_frame = tk.Frame(root_window)
+    footer_frame.pack(side="bottom", fill="x", padx=10, pady=(0, 6))
+
+    global timestamp_label, public_ip_label
+    timestamp_label = tk.Label(footer_frame, text="Last Updated: --:--:--", anchor="w")
+    timestamp_label.pack(side="left", fill="x", expand=True)
+
+    public_ip_label = tk.Label(footer_frame, text="Public IP: unavailable", anchor="e")
+    public_ip_label.pack(side="right", fill="x", expand=True)
+
+    _set_speedtest_state("idle")
+    return tree_widget, timestamp_label
 
 def main():
     """Create and run the Tkinter application.
     Returns:
         None: The application enters the Tk main loop and runs until exit.
     """
-    global root, tree, timestamp_label
+    global root, tree, timestamp_label, public_ip_label
 
     root = tk.Tk()
     root.title(f"Goobs WiFi Scanner - {APP_VERSION}")
     root.geometry("720x480")
+    root._scan_in_progress = False
+    root._speedtest_in_progress = False
+    root._last_speedtest_result = None
+    root._public_ip = "unavailable"
+    root._has_public_ip_task = False
 
     build_menu_bar(root)
     tree, timestamp_label = build_layout(root)
 
     scan_wifi()
+    refresh_public_ip()
     update_gui_timestamp()
     root.mainloop()
 

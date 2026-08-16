@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 import pytest
 
@@ -6,12 +7,14 @@ from safe_subprocess import run_bounded_command
 
 
 def test_run_bounded_command_rejects_shell_style_input():
+    """Reject commands that attempt shell chaining or injection."""
     with pytest.raises(ValueError, match="Unsafe command"):
         run_bounded_command("echo hello && whoami")
 
 
 def test_run_bounded_command_executes_without_shell():
-    result = run_bounded_command(["python", "-c", "print('ok')"], timeout_seconds=10)
+    """Run a safe command without using a shell and keep stdout clean."""
+    result = run_bounded_command([sys.executable, "-c", "print('ok')"], timeout_seconds=10)
 
     assert result.returncode == 0
     assert result.stdout.strip() == "ok"
@@ -19,11 +22,13 @@ def test_run_bounded_command_executes_without_shell():
 
 
 def test_run_bounded_command_enforces_timeout_cap():
+    """Ensure slow commands are aborted when the timeout is exceeded."""
     with pytest.raises(subprocess.TimeoutExpired):
-        run_bounded_command(["python", "-c", "import time; time.sleep(30)"], timeout_seconds=0.1)
+        run_bounded_command([sys.executable, "-c", "import time; time.sleep(30)"], timeout_seconds=0.1)
 
 
 def test_run_bounded_command_uses_windows_no_console_flags(monkeypatch):
+    """Verify the Windows subprocess config suppresses console windows."""
     seen = {}
 
     class FakeStartupInfo:

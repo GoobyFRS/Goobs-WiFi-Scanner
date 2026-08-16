@@ -9,15 +9,15 @@ Goobs WiFi Scanner helps IT Technicians perform simple analysis of retail wirele
 - Optimizing wireless network placement and configuration.
 - Troubleshooting connectivity issues.
 
-**Current Version:** 0.5.3
+**Current Version:** 0.5.1
 
-**Release Date:** 2026.01.08
+**Relase Date:** 2026.08.15
 
-| **SSID** | **Broadcast MAC** | **Signal Strength**| **Channel** |
+| **SSID** | **Broadcast MAC** | **Signal Strength** | **Channel** |
 | --- | --- | --- | --- |
 | Data | a1:b2:c3:e4:f6:78 | Percentage/100 | Data |
 
-## Build Process
+## Quick Start
 
 ```shell
 python -m venv venv
@@ -31,14 +31,12 @@ python main.py
 
 ```powershell
 python -m venv venv
-.\venv\Scripts\Activate.ps1
+venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 $version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"
-pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-$version" --clean main.py
+pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-$version" main.py
 ```
-
-Important: build from the same activated venv that has `speedtest-cli` installed. This ensures the generated app resolves the correct local speedtest executable at runtime, instead of failing on a missing PATH entry.
 
 The packaged app entry point remains `main.py`, which forwards to the package entry point in `app/main.py`.
 
@@ -48,7 +46,7 @@ The project version is managed centrally in `pyproject.toml`. Update the `projec
 
 ```toml
 [project]
-version = "0.5.3"
+version = "0.5.1"
 ```
 
 If you need to bump the app version for the UI title, update the matching value in `app/__init__.py` and `app/main.py` to the same value.

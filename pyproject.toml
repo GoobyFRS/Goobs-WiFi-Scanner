@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "goobs-wifi-scanner"
-version = "0.5.3"
+version = "0.5.1"
 description = "A lightweight Wi-Fi scanner and analysis tool for Windows devices."
 readme = "README.md"
 requires-python = ">=3.10"

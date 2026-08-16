@@ -108,7 +108,7 @@ The project version is managed centrally in `pyproject.toml`.
 
 ```toml
 [project]
-version = "0.5.3"
+version = "0.5.1"
 ```
 
 For the UI title and package metadata, keep the matching values aligned in:

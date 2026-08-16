@@ -11,10 +11,7 @@ def test_run_bounded_command_rejects_shell_style_input():
 
 
 def test_run_bounded_command_executes_without_shell():
-    result = run_bounded_command(
-        ["python", "-c", "print('ok')"],
-        timeout_seconds=10,
-    )
+    result = run_bounded_command(["python", "-c", "print('ok')"], timeout_seconds=10)
 
     assert result.returncode == 0
     assert result.stdout.strip() == "ok"
@@ -23,10 +20,7 @@ def test_run_bounded_command_executes_without_shell():
 
 def test_run_bounded_command_enforces_timeout_cap():
     with pytest.raises(subprocess.TimeoutExpired):
-        run_bounded_command(
-            ["python", "-c", "import time; time.sleep(30)"],
-            timeout_seconds=0.1,
-        )
+        run_bounded_command(["python", "-c", "import time; time.sleep(30)"], timeout_seconds=0.1)
 
 
 def test_run_bounded_command_uses_windows_no_console_flags(monkeypatch):
@@ -49,24 +43,9 @@ def test_run_bounded_command_uses_windows_no_console_flags(monkeypatch):
         return CompletedResult()
 
     monkeypatch.setattr(subprocess, "run", fake_run)
-    monkeypatch.setattr(
-        subprocess,
-        "CREATE_NO_WINDOW",
-        0x08000000,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        subprocess,
-        "STARTUPINFO",
-        FakeStartupInfo,
-        raising=False,
-    )
-    monkeypatch.setattr(
-        subprocess,
-        "STARTF_USESHOWWINDOW",
-        0x00000001,
-        raising=False,
-    )
+    monkeypatch.setattr(subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
+    monkeypatch.setattr(subprocess, "STARTUPINFO", FakeStartupInfo, raising=False)
+    monkeypatch.setattr(subprocess, "STARTF_USESHOWWINDOW", 0x00000001, raising=False)
     monkeypatch.setattr(subprocess, "SW_HIDE", 0, raising=False)
 
     run_bounded_command(["echo", "ok"], timeout_seconds=1)

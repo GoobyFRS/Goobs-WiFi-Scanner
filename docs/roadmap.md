@@ -7,4 +7,3 @@ Desired state is still to be determined...
 ### Feature Requests
 
 - Ping Tool
-- Quality vs RSSI value via tick box

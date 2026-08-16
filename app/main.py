@@ -2,16 +2,13 @@
 """Tkinter application entry point for Goobs WiFi Scanner."""
 
 from __future__ import annotations
-
 import threading
 import time
 import urllib.error
 import urllib.request
 import webbrowser
-
 import tkinter as tk
 from tkinter import ttk
-
 from models.network import NetworkRecord
 from services.speedtest import SpeedtestResult, format_speedtest_result, run_speedtest
 from services.wifi_scan import scan_wifi_networks
@@ -55,14 +52,13 @@ def _public_ip_worker():
     root.after(0, _apply_public_ip, public_ip)
 
 def refresh_public_ip():
-    """Start a background fetch for the public IP and schedule the next refresh."""
+    """Start a single background fetch for the public IP on application launch."""
     if getattr(root, "_has_public_ip_task", False):
         return
 
     root._has_public_ip_task = True
     worker = threading.Thread(target=_public_ip_worker, daemon=True)
     worker.start()
-    root.after(60000, refresh_public_ip)
 
 def _open_link(url: str):
     """Open a GitHub URL in the user's default browser.
@@ -126,14 +122,12 @@ def _apply_scan_results(networks):
     sorted_networks = sorted(networks, key=signal_sort_key, reverse=True)
     for net in sorted_networks:
         tag = signal_tag_for_percentage(
-            getattr(net, "signal_strength", None) if not isinstance(net, (list, tuple)) else net[2]
-        )
+            getattr(net, "signal_strength", None) if not isinstance(net, (list, tuple)) else net[2])
 
         values = (
             (net.ssid, net.mac_address, net.signal_strength, net.channel)
             if isinstance(net, NetworkRecord)
-            else net
-        )
+            else net)
 
         if tag:
             tree.insert("", tk.END, values=values, tags=(tag,))
@@ -156,11 +150,8 @@ def _scan_worker():
         timestamp_label.config(text=f"Scan Error: {exc}")
         root._scan_in_progress = False
 
-def _set_speedtest_state(
-    state: str,
-    result: SpeedtestResult | None = None,
-    error_message: str | None = None,
-):
+def _set_speedtest_state(state: str, result: SpeedtestResult | None = None,
+    error_message: str | None = None,):
     """Update the speedtest dot and result text to match the current state."""
     dot_colors = {
         "idle": "#f4b400",

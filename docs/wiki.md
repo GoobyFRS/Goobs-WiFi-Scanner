@@ -28,11 +28,13 @@ Goobs-WiFi-Scanner/
 │  ├─ __init__.py
 │  └─ wifi_scan.py
 ├─ tests/
-│  ├─ test_wifi_scan.py
-│  └─ test_safe_subprocess.py
+│  ├─ test_build_app.py
+│  ├─ test_safe_subprocess.py
+│  └─ test_wifi_scan.py
 ├─ utils/
 │  ├─ __init__.py
 │  └─ subprocess_utils.py
+├─ build_app.py
 ├─ main.py
 ├─ pyproject.toml
 ├─ README.md
@@ -43,25 +45,73 @@ Goobs-WiFi-Scanner/
    └─ dependabot.yml
 ```
 
+## Build Process
+
+The project requires Python 3.10 or newer. The normal development setup is:
+
+```shell
+python -m venv venv
+venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+`build_app.py` is the canonical packaging entry point. It reads `APP_VERSION`
+from `app/main.py`, removes a leading `v` if present, and invokes PyInstaller
+with the following options:
+
+```powershell
+python build_app.py
+```
+
+The build creates a single-windowed executable with the application icon and a
+versioned name such as `Goobs-WiFi-Scanner-0.5.4`. The equivalent PyInstaller
+command is:
+
+```powershell
+pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-0.5.4" main.py
+```
+
+The runtime version is defined in `app/main.py`; `pyproject.toml` must contain
+the same value. `tests/test_build_app.py` verifies that these two values stay
+aligned. The build script uses `main.py` at the project root as the PyInstaller
+entry point, which delegates to the package application.
+
 ## Runtime Flow
 
-1. The app starts from `main.py`.
-2. `main.py` loads the package entry point in `app/main.py`.
-3. The GUI initializes and schedules an initial Wi-Fi scan.
-4. The scan runs in a background thread.
-5. The Windows `netsh wlan show networks mode=bssid` command is executed using a bounded subprocess helper.
-6. Raw output is parsed into `NetworkRecord` objects.
-7. Results are rendered in the Tkinter Treeview and can be exported to CSV.
+1. The root `main.py` imports and calls `app.main.main()`.
+2. `app/main.py` creates a 720x480 Tkinter window, builds the File and Help
+   menus, and creates the network table, metadata fields, footer, and speed-test
+   controls.
+3. The first Wi-Fi scan and public-IP lookup start on daemon worker threads so
+   the Tk event loop remains responsive.
+4. Worker threads return results to Tk with `root.after(0, ...)`; widgets are
+   updated only on the Tk thread.
+5. Scan results are sorted by signal strength, rendered in the Treeview, and
+   followed by another scan six seconds later.
+6. The public IP is refreshed every 60 seconds and displayed beside the footer
+   timestamp. The timestamp itself refreshes once per second.
+7. The window remains active until the user selects File > Exit or closes it.
 
-## Wi-Fi Scan Logic
+## Scan Logic
 
-The scan path is:
+The Wi-Fi scan path is:
 
-- `services/wifi_scan.py` -> executes the Windows command
-- `utils/subprocess_utils.py` -> enforces shell-free execution, timeout, and bounded output
-- `models/network.py` -> stores the structured network data
+- `services/wifi_scan.py` builds `netsh wlan show networks mode=bssid` and sets
+  a 15-second timeout.
+- `utils/subprocess_utils.py` validates the argv list, runs with `shell=False`,
+  redirects stdin, hides console windows on Windows, applies the timeout, and
+  truncates captured output to 65,536 characters per stream.
+- `parse_wifi_output()` walks the raw `netsh` output line by line. It identifies
+  SSID, BSSID, signal percentage, and channel lines and creates one
+  `NetworkRecord` for each BSSID. Blank SSIDs are represented as `Hidden SSID`.
+- `models/network.py` stores `ssid`, `mac_address`, `signal_strength`, and
+  `channel`. Missing signal or channel values remain `No Data`.
+- `app/main.py` sorts records from strongest to weakest signal, inserts them
+  into the Treeview, and applies strong, good, fair, or weak color tags.
 
-This keeps the Wi‑Fi parsing and OS interaction separate from the GUI logic.
+If `netsh` returns a non-zero exit code, the scan is treated as failed, the
+table is cleared, and the GUI shows the error in the timestamp area.
 
 ## Safety Notes
 
@@ -95,36 +145,27 @@ python main.py
 python -m pytest -q
 ```
 
-## Build
+## Other Features
 
-```powershell
-$version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"
-pyinstaller --onefile --noconsole --icon "assets\icon.ico" --name "Goobs-WiFi-Scanner-$version" main.py
-```
-
-## Versioning
-
-The project version is managed centrally in `pyproject.toml`.
-
-```toml
-[project]
-version = "0.5.1"
-```
-
-For the UI title and package metadata, keep the matching values aligned in:
-
-- `app/__init__.py`
-- `app/main.py`
-
-## Roadmap Highlights
-
-The repository roadmap includes items such as:
-
-- ping tool
-- export improvements
-- CodeQL support
-- build artifact and release pipeline
-- pyproject-based packaging improvements
+- **CSV export:** File > Export CSV opens a save dialog and writes the current
+   Treeview rows with SSID, MAC Address, Signal Strength, and Channel columns.
+- **Internet speed test:** The lower-right Speed Test control runs a compatible
+   `speedtest-cli` executable in a daemon thread with a 35-second timeout. It
+   supports JSON and text output, displays upload/download values in Mbps, and
+   shows idle, running, success, or error status through the colored indicator.
+- **Public IP status:** The footer fetches the public IP from ipify in the
+   background and reports `unavailable` when the request fails.
+- **Signal analysis:** Networks are displayed strongest first and receive
+   visual Treeview tags for strong (80%+), good (65-79%), fair (50-64%), and
+   weak (0-49%) signal levels.
+- **Troubleshooting metadata:** Reference and Department fields provide
+   placeholders for associating a scan with an incident or work area.
+- **Help links:** Help > Check for Updates, Report an Issues, and Open Wiki
+   open the corresponding project pages in the default browser.
+- **Testing and maintenance:** The repository includes pytest coverage for build
+   version helpers, Wi-Fi parsing, speed-test error propagation, and bounded
+   subprocess behavior. Runtime dependencies and the optional development test
+   dependency are declared in `pyproject.toml` and `requirements.txt`.
 
 ## Future Ideas
 
